@@ -1,0 +1,27 @@
+<!-- templates/editar_evento.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Evento</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <h1>Editar Evento</h1>
+  <form method="POST">
+    <input type="hidden" name="event_id" value="{{ evento.id }}">
+    <label for="nome">Novo Nome:</label>
+    <input type="text" name="nome" id="nome" value="{{ evento.name }}">
+    <br>
+    <label for="data">Nova Data (DD-MM-AAAA):</label>
+    <input type="text" name="data" id="data" value="{{ evento.date }}">
+    <br>
+    <label for="orcamento">Novo Orçamento:</label>
+    <input type="number" name="orcamento" id="orcamento" value="{{ evento.budget }}">
+    <br>
+    <button type="submit">Atualizar Evento</button>
+  </form>
+  <a href="{{ url_for('listar_eventos') }}">Voltar</a>
+</body>
+</html>

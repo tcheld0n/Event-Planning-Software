@@ -1,0 +1,38 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Eventos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+<body>
+  <h1>Painel de Eventos</h1>
+  <nav>
+    <ul>
+      <li><a href="{{ url_for('criar_evento') }}">Criar Evento</a></li>
+      <li><a href="{{ url_for('listar_eventos') }}">Listar Eventos</a></li>
+      <li><a href="{{ url_for('registrar_participante') }}">Registrar Participante</a></li>
+      <li><a href="{{ url_for('listar_participantes') }}">Listar Participantes</a></li>
+      <li><a href="{{ url_for('registrar_palestrante') }}">Registrar Palestrante</a></li>
+      <li><a href="{{ url_for('listar_palestrantes') }}">Listar Palestrantes</a></li>
+      <li><a href="{{ url_for('registrar_fornecedor') }}">Registrar Fornecedor</a></li>
+      <li><a href="{{ url_for('listar_fornecedores') }}">Listar Fornecedores</a></li>
+      <li><a href="{{ url_for('atualizar_orcamento') }}">Atualizar Orçamento</a></li>
+      <li><a href="{{ url_for('ver_orcamento') }}">Ver Orçamento</a></li>
+      <li><a href="{{ url_for('editar_orcamento') }}">Editar Orçamento</a></li>
+      <li><a href="{{ url_for('adicionar_feedback') }}">Adicionar Feedback</a></li>
+    </ul>
+  </nav>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+</body>
+</html>

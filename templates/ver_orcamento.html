@@ -1,0 +1,22 @@
+<!-- templates/ver_orcamento.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ver Orçamento</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <h1>Consultar Orçamento</h1>
+  <form method="GET" action="{{ url_for('ver_orcamento') }}">
+    <label for="event_id">ID do Evento:</label>
+    <input type="number" name="event_id" id="event_id" required>
+    <button type="submit">Consultar</button>
+  </form>
+  {% if budget is not none %}
+    <p>Orçamento Atual: {{ budget }}</p>
+  {% endif %}
+  <a href="{{ url_for('index') }}">Voltar</a>
+</body>
+</html>

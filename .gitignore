@@ -1,0 +1,21 @@
+# Ignorar arquivos de cache do Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignorar banco de dados SQLite (caso tenha usado)
+*.sqlite3
+
+# Ignorar configurações de ambiente do Python (Virtualenv)
+venv/
+.env
+*.env
+
+# Ignorar arquivos do editor (VSCode, PyCharm, etc.)
+.vscode/
+.idea/
+*.swp
+
+# Ignorar logs
+*.log
+logs/

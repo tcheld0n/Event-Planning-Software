@@ -1,0 +1,21 @@
+<!-- templates/editar_participante.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Participante</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <h1>Editar Participante</h1>
+  <form method="POST">
+    <input type="hidden" name="participant_id" value="{{ participante.id }}">
+    <label for="nome">Novo Nome:</label>
+    <input type="text" name="novo_nome" id="nome" value="{{ participante.name }}" required>
+    <br>
+    <button type="submit">Atualizar Participante</button>
+  </form>
+  <a href="{{ url_for('listar_participantes') }}">Voltar</a>
+</body>
+</html>

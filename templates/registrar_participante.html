@@ -1,0 +1,23 @@
+<!-- templates/registrar_participante.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrar Participante</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/registrarParticipantes.css') }}">
+</head>
+<body>
+  <div class="registrar-participantes-container">
+    <h1>Registrar Participante</h1>
+    <form class="registrar-participantes-form" method="POST">
+      <label for="event_id">ID do Evento:</label>
+      <input type="number" name="event_id" id="event_id" required>
+      <label for="nome">Nome do Participante:</label>
+      <input type="text" name="nome" id="nome" required>
+      <button type="submit">Registrar</button>
+    </form>
+    <a href="{{ url_for('index') }}">Voltar</a>
+  </div>
+</body>
+</html>

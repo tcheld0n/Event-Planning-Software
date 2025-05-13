@@ -1,0 +1,23 @@
+<!-- templates/adicionar_feedback.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adicionar Feedback</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <h1>Adicionar Feedback</h1>
+  <form method="POST">
+    <label for="event_id">ID do Evento:</label>
+    <input type="number" name="event_id" id="event_id" required>
+    <br>
+    <label for="feedback">Feedback:</label>
+    <textarea name="feedback" id="feedback" required></textarea>
+    <br>
+    <button type="submit">Enviar Feedback</button>
+  </form>
+  <a href="{{ url_for('index') }}">Voltar</a>
+</body>
+</html>

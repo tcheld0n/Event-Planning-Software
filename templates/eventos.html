@@ -1,0 +1,35 @@
+<!-- templates/eventos.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eventos Cadastrados</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/verEventos.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Lista de Eventos</h1>
+    {% if eventos %}
+      <ul class="event-list">
+        {% for evento in eventos %}
+          <li class="event-item">
+            <div class="event-info">
+              <strong>{{ evento.name }}</strong><br>
+              Data: {{ evento.date }}<br>
+              Orçamento: R$ {{ evento.budget }}
+            </div>
+            <div class="actions">
+              <a href="{{ url_for('editar_evento', event_id=evento.id) }}" class="btn btn-edit">Editar</a>
+              <a href="{{ url_for('excluir_evento', event_id=evento.id) }}" class="btn btn-delete">Excluir</a>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Nenhum evento cadastrado.</p>
+    {% endif %}
+    <a href="{{ url_for('index') }}" class="btn">Voltar</a>
+  </div>
+</body>
+</html>

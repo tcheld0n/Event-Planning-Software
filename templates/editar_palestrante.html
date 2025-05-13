@@ -1,0 +1,24 @@
+<!-- templates/editar_palestrante.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Palestrante</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <h1>Editar Palestrante</h1>
+  <form method="POST">
+    <input type="hidden" name="speaker_id" value="{{ palestrante.id }}">
+    <label for="novo_nome">Novo Nome:</label>
+    <input type="text" name="novo_nome" id="novo_nome" value="{{ palestrante.name }}" required>
+    <br>
+    <label for="nova_descricao">Nova Descrição:</label>
+    <textarea name="nova_descricao" id="nova_descricao">{{ palestrante.description }}</textarea>
+    <br>
+    <button type="submit">Atualizar Palestrante</button>
+  </form>
+  <a href="{{ url_for('listar_palestrantes') }}">Voltar</a>
+</body>
+</html>

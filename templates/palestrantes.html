@@ -1,0 +1,29 @@
+<!-- templates/palestrantes.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palestrantes</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <h1>Palestrantes do Evento</h1>
+  <form method="GET" action="{{ url_for('listar_palestrantes') }}">
+    <label for="event_id">ID do Evento:</label>
+    <input type="number" name="event_id" id="event_id" required>
+    <button type="submit">Buscar</button>
+  </form>
+  {% if palestrantes %}
+    <ul>
+      {% for palestrante in palestrantes %}
+        <li>
+          {{ palestrante.name }} - {{ palestrante.description }} (ID: {{ palestrante.id }})
+          <a href="{{ url_for('editar_palestrante', speaker_id=palestrante.id) }}">Editar</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <a href="{{ url_for('index') }}">Voltar</a>
+</body>
+</html>
