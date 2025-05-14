@@ -11,7 +11,7 @@ class BaseService(ABC):
         """Atualiza um objeto existente"""
         pass
 
-    @abstractmethod
+    @abstractmethod 
     def delete(self, obj_id):
         """Exclui um objeto identificado por obj_id"""
         pass

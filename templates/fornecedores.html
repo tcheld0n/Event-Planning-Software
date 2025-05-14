@@ -1,4 +1,5 @@
 <!-- templates/fornecedores.html -->
+<!-- templates/fornecedores.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -9,20 +10,40 @@
 </head>
 <body>
   <h1>Fornecedores do Evento</h1>
-  <form method="GET" action="{{ url_for('listar_fornecedores') }}">
-    <label for="event_id">ID do Evento:</label>
-    <input type="number" name="event_id" id="event_id" required>
-    <button type="submit">Buscar</button>
-  </form>
+  <div class="form-container">
+    <form method="GET" action="{{ url_for('listar_fornecedores') }}">
+      <label for="event_id">Evento:</label>
+      <select name="event_id" id="event_id" required>
+        <option value="">Selecione um evento</option>
+        {% for evento in eventos %}
+          <option value="{{ evento.id }}" {% if evento_selecionado == evento.id %}selected{% endif %}>
+            {{ evento.display_name }}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit">Buscar Fornecedores</button>
+    </form>
+  </div>
+
   {% if fornecedores %}
-    <ul>
-      {% for fornecedor in fornecedores %}
-        <li>
-          {{ fornecedor.name }} - Serviços: {{ fornecedor.services }} (ID: {{ fornecedor.id }})
-          <a href="{{ url_for('editar_fornecedor', vendor_id=fornecedor.id) }}">Editar</a>
-        </li>
-      {% endfor %}
-    </ul>
+    <div class="vendors-list">
+      <h2>Fornecedores do Evento</h2>
+      <ul>
+        {% for fornecedor in fornecedores %}
+          <li>
+            {% if fornecedor.display_name %}
+              {{ fornecedor.display_name }}
+            {% else %}
+              {{ fornecedor.name }} (ID: {{ fornecedor.id }})
+            {% endif %}
+            - Serviços: {{ fornecedor.services }}
+            <a href="{{ url_for('editar_fornecedor', vendor_id=fornecedor.id) }}">Editar</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% elif evento_selecionado %}
+    <p>Nenhum fornecedor encontrado para este evento.</p>
   {% endif %}
   <a href="{{ url_for('index') }}">Voltar</a>
 </body>

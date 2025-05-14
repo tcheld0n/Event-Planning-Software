@@ -1,63 +1,52 @@
-from database.db import SessionLocal
-from models.participant import Participant
-from models.event import Event
+# services/participant_service.py
 from services.base_service import BaseService
+from repositories.participant_repository import ParticipantRepository
+from repositories.event_repository import EventRepository
+from factory.entity_factory import EntityFactory
 
 class ParticipantService(BaseService):
-    def create(self, event_id, name):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return None
-            participant = Participant(name=name, event_id=event_id)
-            session.add(participant)
-            session.commit()
-            session.refresh(participant)
-            return participant.to_dict()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-    
+    def __init__(self, participant_repository=None, event_repository=None):
+        self.repo = participant_repository or ParticipantRepository()
+        self.event_repo = event_repository or EventRepository()
+
+    def create(self, event_id, name):  
+        if event_id is None:
+            raise ValueError("ID de evento inválido")
+            
+        event = self.event_repo.get_by_id(event_id)
+        if not event:
+            raise ValueError("Evento não encontrado")
+        p = EntityFactory.create_participant(name, event_id)  
+        saved = self.repo.add(p)
+        return saved.to_dict()
+
     def update(self, participant_id, new_name):
-        session = SessionLocal()
-        try:
-            participant = session.query(Participant).filter(Participant.id == participant_id).first()
-            if not participant:
-                return None
-            participant.name = new_name
-            session.commit()
-            return participant.to_dict()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-    
+        p = self.repo.get_by_id(participant_id)
+        if not p:
+            return None
+        p.name = new_name
+        updated = self.repo.add(p)
+        return updated.to_dict()
+
     def delete(self, participant_id):
-        session = SessionLocal()
-        try:
-            participant = session.query(Participant).filter(Participant.id == participant_id).first()
-            if not participant:
-                return False
-            session.delete(participant)
-            session.commit()
-            return True
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-    
-    # Método adicional para obter participantes de um evento:
+        p = self.repo.get_by_id(participant_id)
+        if not p:
+            return False
+        self.repo.remove(p)
+        return True
+
     def get_attendees(self, event_id):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return None
-            return [participant.to_dict() for participant in event.participants]
-        finally:
-            session.close()
+        event = self.event_repo.get_by_id(event_id)
+        if not event:
+            return None
+        
+        return [
+            {
+                "id": p.id,
+                "display_name": f"{p.id}: {p.name}",
+                "name": p.name,
+                "event_id": p.event_id,
+                "event_name": event.name
+            }
+            for p in event.participants
+        ]

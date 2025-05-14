@@ -9,20 +9,39 @@
 </head>
 <body>
   <h1>Participantes do Evento</h1>
-  <form method="GET" action="{{ url_for('listar_participantes') }}">
-    <label for="event_id">ID do Evento:</label>
-    <input type="number" name="event_id" id="event_id" required>
-    <button type="submit">Buscar</button>
-  </form>
+  <div class="form-container">
+    <form method="GET" action="{{ url_for('listar_participantes') }}">
+      <label for="event_id">Evento:</label>
+      <select name="event_id" id="event_id" required>
+        <option value="">Selecione um evento</option>
+        {% for evento in eventos %}
+          <option value="{{ evento.id }}" {% if evento_selecionado == evento.id %}selected{% endif %}>
+            {{ evento.display_name }}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit">Buscar Participantes</button>
+    </form>
+  </div>
+
   {% if participantes %}
-    <ul>
-      {% for participante in participantes %}
-        <li>
-          {{ participante.name }} (ID: {{ participante.id }})
-          <a href="{{ url_for('editar_participante', participant_id=participante.id) }}">Editar</a>
-        </li>
-      {% endfor %}
-    </ul>
+    <div class="participants-list">
+      <h2>Participantes do Evento</h2>
+      <ul>
+        {% for participante in participantes %}
+          <li>
+            {% if participante.display_name %}
+              {{ participante.display_name }}
+            {% else %}
+              {{ participante.name }} (ID: {{ participante.id }})
+            {% endif %}
+            <a href="{{ url_for('editar_participante', participant_id=participante.id) }}">Editar</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% elif evento_selecionado %}
+    <p>Nenhum participante encontrado para este evento.</p>
   {% endif %}
   <a href="{{ url_for('index') }}">Voltar</a>
 </body>

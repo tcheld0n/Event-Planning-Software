@@ -1,4 +1,5 @@
 <!-- templates/palestrantes.html -->
+<!-- templates/palestrantes.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -9,20 +10,40 @@
 </head>
 <body>
   <h1>Palestrantes do Evento</h1>
-  <form method="GET" action="{{ url_for('listar_palestrantes') }}">
-    <label for="event_id">ID do Evento:</label>
-    <input type="number" name="event_id" id="event_id" required>
-    <button type="submit">Buscar</button>
-  </form>
+  <div class="form-container">
+    <form method="GET" action="{{ url_for('listar_palestrantes') }}">
+      <label for="event_id">Evento:</label>
+      <select name="event_id" id="event_id" required>
+        <option value="">Selecione um evento</option>
+        {% for evento in eventos %}
+          <option value="{{ evento.id }}" {% if evento_selecionado == evento.id %}selected{% endif %}>
+            {{ evento.display_name }}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit">Buscar Palestrantes</button>
+    </form>
+  </div>
+
   {% if palestrantes %}
-    <ul>
-      {% for palestrante in palestrantes %}
-        <li>
-          {{ palestrante.name }} - {{ palestrante.description }} (ID: {{ palestrante.id }})
-          <a href="{{ url_for('editar_palestrante', speaker_id=palestrante.id) }}">Editar</a>
-        </li>
-      {% endfor %}
-    </ul>
+    <div class="speakers-list">
+      <h2>Palestrantes do Evento</h2>
+      <ul>
+        {% for palestrante in palestrantes %}
+          <li>
+            {% if palestrante.display_name %}
+              {{ palestrante.display_name }}
+            {% else %}
+              {{ palestrante.name }} (ID: {{ palestrante.id }})
+            {% endif %}
+            {% if palestrante.description %} - {{ palestrante.description }}{% endif %}
+            <a href="{{ url_for('editar_palestrante', speaker_id=palestrante.id) }}">Editar</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% elif evento_selecionado %}
+    <p>Nenhum palestrante encontrado para este evento.</p>
   {% endif %}
   <a href="{{ url_for('index') }}">Voltar</a>
 </body>

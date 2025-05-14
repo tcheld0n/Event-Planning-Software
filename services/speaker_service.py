@@ -1,66 +1,54 @@
-from database.db import SessionLocal
-from models.speaker import Speaker
-from models.event import Event
+# services/speaker_service.py
+
 from services.base_service import BaseService
+from repositories.speaker_repository import SpeakerRepository
+from repositories.event_repository import EventRepository
+from factory.entity_factory import EntityFactory
 
 class SpeakerService(BaseService):
-    def create(self, event_id, name, description):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return None
-            speaker = Speaker(name=name, description=description, event_id=event_id)
-            session.add(speaker)
-            session.commit()
-            session.refresh(speaker)
-            return speaker.to_dict()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-    
+    def __init__(self, speaker_repository=None, event_repository=None):
+        self.repo = speaker_repository or SpeakerRepository()
+        self.event_repo = event_repository or EventRepository()
+
+    def create(self, name, description, event_id):
+        event = self.event_repo.get_by_id(event_id)
+        if not event:
+            return None
+        s = EntityFactory.create_speaker(name, description, event_id)
+        saved = self.repo.add(s)
+        return saved.to_dict()
+
     def update(self, speaker_id, new_name=None, new_description=None):
-        session = SessionLocal()
-        try:
-            speaker = session.query(Speaker).filter(Speaker.id == speaker_id).first()
-            if not speaker:
-                return None
-            if new_name and new_name.strip():
-                speaker.name = new_name
-            if new_description and new_description.strip():
-                speaker.description = new_description
-            session.commit()
-            return speaker.to_dict()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-    
+        s = self.repo.get_by_id(speaker_id)
+        if not s:
+            return None
+        if new_name and new_name.strip():
+            s.name = new_name
+        if new_description and new_description.strip():
+            s.description = new_description
+        updated = self.repo.add(s)
+        return updated.to_dict()
+
     def delete(self, speaker_id):
-        session = SessionLocal()
-        try:
-            speaker = session.query(Speaker).filter(Speaker.id == speaker_id).first()
-            if not speaker:
-                return False
-            session.delete(speaker)
-            session.commit()
-            return True
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-    
-    # Método adicional para listar speakers de um evento:
+        s = self.repo.get_by_id(speaker_id)
+        if not s:
+            return False
+        self.repo.remove(s)
+        return True
+
     def list_speakers(self, event_id):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return None
-            return [speaker.to_dict() for speaker in event.speakers]
-        finally:
-            session.close()
+        event = self.event_repo.get_by_id(event_id)
+        if not event:
+            return None
+        
+        return [
+            {
+                "id": s.id,
+                "display_name": f"{s.id}: {s.name}",
+                "name": s.name,
+                "description": s.description,
+                "event_id": s.event_id,
+                "event_name": event.name
+            }
+            for s in event.speakers
+        ]

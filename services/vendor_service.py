@@ -1,66 +1,53 @@
-from database.db import SessionLocal
-from models.vendor import Vendor
-from models.event import Event
+# services/vendor_service.py
 from services.base_service import BaseService
+from repositories.vendor_repository import VendorRepository
+from repositories.event_repository import EventRepository
+from factory.entity_factory import EntityFactory
 
 class VendorService(BaseService):
-    def create(self, event_id, name, services_offered):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return None
-            vendor = Vendor(name=name, services=services_offered, event_id=event_id)
-            session.add(vendor)
-            session.commit()
-            session.refresh(vendor)
-            return vendor.to_dict()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-    
+    def __init__(self, vendor_repository=None, event_repository=None):
+        self.repo = vendor_repository or VendorRepository()
+        self.event_repo = event_repository or EventRepository()
+
+    def create(self, name, services_offered, event_id):
+        event = self.event_repo.get_by_id(event_id)
+        if not event:
+            return None
+        v = EntityFactory.create_vendor(name, services_offered, event_id)
+        saved = self.repo.add(v)
+        return saved.to_dict()
+
     def update(self, vendor_id, new_name=None, new_services=None):
-        session = SessionLocal()
-        try:
-            vendor = session.query(Vendor).filter(Vendor.id == vendor_id).first()
-            if not vendor:
-                return None
-            if new_name and new_name.strip():
-                vendor.name = new_name
-            if new_services and new_services.strip():
-                vendor.services = new_services
-            session.commit()
-            return vendor.to_dict()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-    
+        v = self.repo.get_by_id(vendor_id)
+        if not v:
+            return None
+        if new_name and new_name.strip():
+            v.name = new_name
+        if new_services and new_services.strip():
+            v.services = new_services
+        updated = self.repo.add(v)
+        return updated.to_dict()
+
     def delete(self, vendor_id):
-        session = SessionLocal()
-        try:
-            vendor = session.query(Vendor).filter(Vendor.id == vendor_id).first()
-            if not vendor:
-                return False
-            session.delete(vendor)
-            session.commit()
-            return True
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-    
-    # Método adicional para listar vendors de um evento:
+        v = self.repo.get_by_id(vendor_id)
+        if not v:
+            return False
+        self.repo.remove(v)
+        return True
+
     def list_vendors(self, event_id):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return None
-            return [vendor.to_dict() for vendor in event.vendors]
-        finally:
-            session.close()
+        event = self.event_repo.get_by_id(event_id)
+        if not event:
+            return None
+        
+        return [
+            {
+                "id": v.id,
+                "display_name": f"{v.id}: {v.name}",
+                "name": v.name,
+                "services": v.services,
+                "event_id": v.event_id,
+                "event_name": event.name
+            }
+            for v in event.vendors
+        ]

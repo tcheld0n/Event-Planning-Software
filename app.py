@@ -4,14 +4,13 @@ from services.participant_service import ParticipantService
 from services.speaker_service import SpeakerService
 from services.vendor_service import VendorService
 from services.feedback_service import FeedbackService
-from services.event_service import EventService  # para orçamento
+from services.event_service import EventService  
 
 def create_app():
     app = Flask(__name__)
     app.secret_key = 'sua_chave_secreta'
 
     # Rotas do front-end (rotas "amigáveis")
-
     @app.route("/")
     def index():
         return render_template("index.html")
@@ -39,19 +38,36 @@ def create_app():
     @app.route("/editar_evento/<int:event_id>", methods=["GET", "POST"])
     def editar_evento(event_id):
         service = EventService()
+        
         if request.method == "POST":
             nome = request.form.get("nome")
             data = request.form.get("data")
             orcamento = request.form.get("orcamento")
             try:
+                # Atualizar o evento
                 service.update(event_id, name=nome, date=data, budget=orcamento)
                 flash("Evento atualizado!", "success")
                 return redirect(url_for("listar_eventos"))
             except Exception as e:
                 flash(f"Erro ao atualizar: {e}", "danger")
-        # Obtenha o evento para preencher os campos
-        evento = next((ev for ev in service.list_events() if ev["id"] == event_id), None)
-        return render_template("editar_evento.html", evento=evento)
+        
+        # Buscar o evento diretamente pelo ID, mais eficiente
+        evento = service.repo.get_by_id(event_id)
+        
+        if not evento:
+            flash("Evento não encontrado!", "danger")
+            return redirect(url_for("listar_eventos"))
+            
+        # Converter para dicionário com o novo formato display_name
+        evento_dict = {
+            "id": evento.id,
+            "display_name": f"{evento.id}: {evento.name}",
+            "name": evento.name,
+            "date": evento.date,
+            "budget": evento.budget
+        }
+            
+        return render_template("editar_evento.html", evento=evento_dict)
 
     @app.route("/excluir_evento/<int:event_id>")
     def excluir_evento(event_id):
@@ -65,7 +81,11 @@ def create_app():
     @app.route("/registrar_participante", methods=["GET", "POST"])
     def registrar_participante():
         if request.method == "POST":
-            event_id = request.form.get("event_id")
+            event_id = safe_int(request.form.get("event_id"))
+            if event_id is None:  # ✅ Verifica se é None
+                flash("ID de evento inválido!", "danger")
+                return redirect(url_for("registrar_participante"))
+                
             nome = request.form.get("nome")
             try:
                 ParticipantService().create(event_id, nome)
@@ -73,16 +93,27 @@ def create_app():
                 return redirect(url_for("listar_participantes"))
             except Exception as e:
                 flash(f"Erro: {e}", "danger")
-        return render_template("registrar_participante.html")
+        
+        # Buscar eventos para exibir em um dropdown
+        eventos = EventService().list_events()
+        return render_template("registrar_participante.html", eventos=eventos)
 
     @app.route("/listar_participantes", methods=["GET"])
     def listar_participantes():
         participantes = None
-        event_id = request.args.get("event_id")
+        event_id = safe_int(request.args.get("event_id"))
+        
+        # Buscar eventos para dropdown de seleção
+        eventos = EventService().list_events()
+        
         if event_id:
             participantes = ParticipantService().get_attendees(event_id)
-        return render_template("participantes.html", participantes=participantes)
-
+            
+        return render_template("participantes.html", 
+                            participantes=participantes, 
+                            eventos=eventos,
+                            evento_selecionado=event_id)
+    
     @app.route("/editar_participante/<int:participant_id>", methods=["GET", "POST"])
     def editar_participante(participant_id):
         if request.method == "POST":
@@ -101,24 +132,44 @@ def create_app():
     @app.route("/registrar_palestrante", methods=["GET", "POST"])
     def registrar_palestrante():
         if request.method == "POST":
-            event_id = request.form.get("event_id")
+            event_id = safe_int(request.form.get("event_id"))
+            if event_id is None:
+                flash("ID de evento inválido!", "danger")
+                return redirect(url_for("registrar_palestrante"))
+                
             nome = request.form.get("nome")
             descricao = request.form.get("descricao")
             try:
-                SpeakerService().create(event_id, nome, descricao)
+                # Ordem correta: nome, descrição, event_id
+                SpeakerService().create(nome, descricao, event_id)
                 flash("Palestrante registrado!", "success")
                 return redirect(url_for("listar_palestrantes"))
             except Exception as e:
                 flash(f"Erro: {e}", "danger")
-        return render_template("registrar_palestrante.html")
+        
+        # IMPORTANTE: Buscar eventos para o dropdown
+        eventos = EventService().list_events()
+        
+        # Verificação para depuração
+        print(f"Eventos encontrados: {len(eventos)}")
+        
+        return render_template("registrar_palestrante.html", eventos=eventos)
 
     @app.route("/listar_palestrantes", methods=["GET"])
     def listar_palestrantes():
         palestrantes = None
-        event_id = request.args.get("event_id")
+        event_id = safe_int(request.args.get("event_id"))
+        
+        # Buscar eventos para o dropdown
+        eventos = EventService().list_events()
+        
         if event_id:
             palestrantes = SpeakerService().list_speakers(event_id)
-        return render_template("palestrantes.html", palestrantes=palestrantes)
+        
+        return render_template("palestrantes.html", 
+                            palestrantes=palestrantes, 
+                            eventos=eventos,  
+                            evento_selecionado=event_id)
 
     @app.route("/editar_palestrante/<int:speaker_id>", methods=["GET", "POST"])
     def editar_palestrante(speaker_id):
@@ -138,24 +189,39 @@ def create_app():
     @app.route("/registrar_fornecedor", methods=["GET", "POST"])
     def registrar_fornecedor():
         if request.method == "POST":
-            event_id = request.form.get("event_id")
+            event_id = safe_int(request.form.get("event_id"))
+            if event_id is None:
+                flash("ID de evento inválido!", "danger")
+                return redirect(url_for("registrar_fornecedor"))
+                
             nome = request.form.get("nome")
             servicos = request.form.get("servicos")
             try:
-                VendorService().create(event_id, nome, servicos)
+                VendorService().create(nome, servicos, event_id)
                 flash("Fornecedor registrado!", "success")
                 return redirect(url_for("listar_fornecedores"))
             except Exception as e:
                 flash(f"Erro: {e}", "danger")
-        return render_template("registrar_fornecedor.html")
+        
+        # Buscar eventos para o dropdown
+        eventos = EventService().list_events()
+        return render_template("registrar_fornecedor.html", eventos=eventos)
 
     @app.route("/listar_fornecedores", methods=["GET"])
     def listar_fornecedores():
         fornecedores = None
-        event_id = request.args.get("event_id")
+        event_id = safe_int(request.args.get("event_id"))
+        
+        # Buscar eventos para o dropdown
+        eventos = EventService().list_events()
+        
         if event_id:
             fornecedores = VendorService().list_vendors(event_id)
-        return render_template("fornecedores.html", fornecedores=fornecedores)
+        
+        return render_template("fornecedores.html", 
+                            fornecedores=fornecedores, 
+                            eventos=eventos,
+                            evento_selecionado=event_id)
 
     @app.route("/editar_fornecedor/<int:vendor_id>", methods=["GET", "POST"])
     def editar_fornecedor(vendor_id):
@@ -175,7 +241,7 @@ def create_app():
     @app.route("/atualizar_orcamento", methods=["GET", "POST"])
     def atualizar_orcamento():
         if request.method == "POST":
-            event_id = request.form.get("event_id")
+            event_id = safe_int(request.form.get("event_id"))
             amount = request.form.get("amount")
             try:
                 EventService().update_budget(event_id, int(amount))
@@ -188,7 +254,7 @@ def create_app():
     @app.route("/ver_orcamento", methods=["GET"])
     def ver_orcamento():
         budget = None
-        event_id = request.args.get("event_id")
+        event_id = safe_int(request.args.get("event_id"))
         if event_id:
             budget = EventService().get_budget(event_id)
         return render_template("ver_orcamento.html", budget=budget)
@@ -196,7 +262,7 @@ def create_app():
     @app.route("/editar_orcamento", methods=["GET", "POST"])
     def editar_orcamento():
         if request.method == "POST":
-            event_id = request.form.get("event_id")
+            event_id = safe_int(request.form.get("event_id"))
             novo_orcamento = request.form.get("novo_orcamento")
             try:
                 EventService().edit_budget(event_id, int(novo_orcamento))
@@ -210,7 +276,7 @@ def create_app():
     @app.route("/adicionar_feedback", methods=["GET", "POST"])
     def adicionar_feedback():
         if request.method == "POST":
-            event_id = request.form.get("event_id")
+            event_id = safe_int(request.form.get("event_id"))
             feedback = request.form.get("feedback")
             try:
                 FeedbackService().create(event_id, feedback)
@@ -221,6 +287,15 @@ def create_app():
         return render_template("adicionar_feedback.html")
 
     return app
+
+# Função auxiliar para converter valores para inteiro com segurança
+def safe_int(value, default=None):
+    """Converte um valor para inteiro com segurança"""
+    try:
+        return int(value) if value else default
+    except (ValueError, TypeError):
+        return default
+        # Se não for possível converter, retorna o valor padrão
 
 if __name__ == "__main__":
     app = create_app()

@@ -1,103 +1,71 @@
-from database.db import SessionLocal
-from models.event import Event
-from datetime import datetime
+# services/event_service.py
 from services.base_service import BaseService
+from repositories.event_repository import EventRepository
+from factory.entity_factory import EntityFactory
+from notifications.notification_manager import notification_manager # Observer
 
 class EventService(BaseService):
+    def __init__(self, event_repository=None):
+        self.repo = event_repository or EventRepository() # Injeção de depedência
+
     def create(self, name, date, budget):
-        session = SessionLocal()
-        try:
-            event = Event(name=name, date=date, budget=budget)
-            session.add(event)
-            session.commit()
-            session.refresh(event)
-            return event.to_dict()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
+        event = EntityFactory.create_event(name, date, budget)
+        saved = self.repo.add(event)
+        
+        # Dispara notificação de evento criado
+        notification_manager.notify("event_created", event) 
+        
+        return saved.to_dict()
 
     def update(self, event_id, **data):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return None
-            if "name" in data:
-                event.name = data["name"]
-            if "date" in data:
-                event.date = datetime.strptime(data["date"], "%d-%m-%Y").date()
-            if "budget" in data:
-                event.budget = int(data["budget"])
-            session.commit()
-            return event.to_dict()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
+        event = self.repo.get_by_id(event_id)
+        if not event:
+            return None
+        if "name" in data:
+            event.name = data["name"]
+        if "date" in data:
+            event.date = data["date"]
+        if "budget" in data:
+            event.budget = int(data["budget"])
+        updated = self.repo.add(event)
+        return updated.to_dict()
 
     def delete(self, event_id):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return False
-            session.delete(event)
-            session.commit()
-            return True
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
+        event = self.repo.get_by_id(event_id)
+        if not event:
+            return False
+        self.repo.remove(event)
+        return True
 
-    # Métodos adicionais que não fazem parte do contrato abstrato, mas podem ser usados normalmente:
     def list_events(self):
-        session = SessionLocal()
-        try:
-            events = session.query(Event).all()
-            return [event.to_dict() for event in events]
-        finally:
-            session.close()
+        events = self.repo.list_all()
+        return [
+            {
+                "id": event.id,
+                "display_name": f"{event.id}: {event.name}",
+                "name": event.name,
+                "date": event.date,
+                "budget": event.budget
+            }
+            for event in events
+        ]
 
     def update_budget(self, event_id, amount):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return None
-            event.budget += amount
-            session.commit()
-            return event.to_dict()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
+        event = self.repo.get_by_id(event_id)
+        if not event:
+            return None
+        event.budget += amount
+        updated = self.repo.add(event)
+        return updated.to_dict()
 
     def get_budget(self, event_id):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return None
-            return event.budget
-        finally:
-            session.close()
+        event = self.repo.get_by_id(event_id)
+        return None if not event else event.budget
 
     def edit_budget(self, event_id, new_budget):
-        session = SessionLocal()
-        try:
-            event = session.query(Event).filter(Event.id == event_id).first()
-            if not event:
-                return None
-            event.budget = new_budget
-            session.commit()
-            return event.to_dict()
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
+        event = self.repo.get_by_id(event_id)
+        if not event:
+            return None
+        event.budget = new_budget
+        updated = self.repo.add(event)
+        return updated.to_dict()

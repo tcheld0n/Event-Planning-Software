@@ -1,15 +1,14 @@
 # models/event.py
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy.orm import relationship
 from database.db import Base
 
 class Event(Base):
     __tablename__ = "events"
-
     id = Column(Integer, primary_key=True, index=True)
     _name = Column("name", String, nullable=False)
     _date = Column("date", String, nullable=False)
-    _budget = Column("budget", Integer, default=0)
+    _budget = Column("budget", Float, default=0.0)
 
     # Relacionamentos com tabelas filhas
     participants = relationship("Participant", back_populates="event", cascade="all, delete-orphan")
@@ -17,7 +16,7 @@ class Event(Base):
     vendors = relationship("Vendor", back_populates="event", cascade="all, delete-orphan")
     feedbacks = relationship("Feedback", back_populates="event", cascade="all, delete-orphan")
 
-    def __init__(self, name, date, budget=0):
+    def __init__(self, name, date, budget=0.0):
         self.name = name
         self.date = date
         self.budget = budget
@@ -55,14 +54,26 @@ class Event(Base):
             raise ValueError("O orçamento não pode ser negativo!")
         self._budget = value
 
-    def to_dict(self):
-        return {
+    def to_dict(self, include_relations=True):
+        result = {
             "id": self.id,
             "name": self.name,
             "date": self.date,
-            "budget": self.budget,
-            "participants": [p.to_dict() for p in self.participants],
-            "speakers": [s.to_dict() for s in self.speakers],
-            "vendors": [v.to_dict() for v in self.vendors],
-            "feedbacks": [f.to_dict() for f in self.feedbacks]
+            "budget": self.budget
         }
+        
+        # Acessa as relações quando explicitamente solicitado
+        if include_relations:
+            try:
+                result["participants"] = [p.to_dict() for p in self.participants]
+                result["speakers"] = [s.to_dict() for s in self.speakers]
+                result["vendors"] = [v.to_dict() for v in self.vendors]
+                result["feedbacks"] = [f.to_dict() for f in self.feedbacks]
+            except:
+                # Se houver erro de sessão, retorna apenas as listas vazias
+                result["participants"] = []
+                result["speakers"] = []
+                result["vendors"] = []
+                result["feedbacks"] = []
+        
+        return result

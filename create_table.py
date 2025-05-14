@@ -3,9 +3,9 @@ from psycopg2 import sql
 
 # Dados de acesso
 HOST = "localhost"
-USER = "yourUser"
-PASSWORD = "yourPassword"
-DB_NAME = "chooseYourDBName"
+USER = "postgres"
+PASSWORD = "123456"
+DB_NAME = "postgres"
 
 # Conecta ao banco default para criar o novo banco
 def criar_banco():
