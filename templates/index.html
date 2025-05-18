@@ -22,7 +22,9 @@
       <li><a href="{{ url_for('atualizar_orcamento') }}">Atualizar Orçamento</a></li>
       <li><a href="{{ url_for('ver_orcamento') }}">Ver Orçamento</a></li>
       <li><a href="{{ url_for('editar_orcamento') }}">Editar Orçamento</a></li>
+      <li><a href="{{ url_for('ver_feedbacks') }}">Ver Feedbacks</a></li>
       <li><a href="{{ url_for('adicionar_feedback') }}">Adicionar Feedback</a></li>
+      
     </ul>
   </nav>
   {% with messages = get_flashed_messages(with_categories=true) %}

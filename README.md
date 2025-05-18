@@ -1,136 +1,205 @@
-# Event Manager Software
+# Event Planning Software
 
 ## Disclaimer
-
-This version of the project is based on the original work by [Marcelo Palmeira](https://github.com/MarceloPalmeira/software-project-v2).
-
+This version of the project is based on the original work by Marcelo Palmeira.
 All credits for the initial version go to the original author. This repository aims to refactor and restructure the code for learning and improvement purposes.
 
-
+## Overview
 This project is an event management system that allows you to create, edit, list, and delete events, as well as manage participants, speakers, vendors, feedback, and budgets. The application includes a REST API built with Flask, a web front-end using Jinja2 templates (with modular CSS files for each component), and a terminal-based client for direct interaction.
 
-**Run create_table.py to create the database structure and remember to configure db.py**
----
+## 🔍 Design Patterns Implementation
 
-## Features
+**The main purpose of this project is to demonstrate the implementation of key design patterns in a real-world application:**
 
-### Event Management
-- **Create Event:** Add a new event by providing its name, date (in DD-MM-YYYY format), and initial budget.
-- **Edit Event:** Modify event details such as name, date, and budget.
-- **List Events:** Display all registered events.
-- **Delete Event:** Remove an event from the system.
+### Creational Patterns
+- **Factory Pattern**: Implemented in the `EntityFactory` class to create domain objects (events, participants, speakers, etc.) with a consistent interface, promoting loose coupling and allowing for future extensions of entity types.
 
-### Participant Management
-- **Register Participant:** Associate a participant with an event.
-- **List Participants:** Display all participants registered for an event.
-- **Edit Participant:** Update the name of a participant.
+### Structural Patterns
+- **Facade Pattern**: Implemented in the service layer (`EventService`, `ParticipantService`, etc.) to provide a simplified interface to the complex subsystem of repositories, models, and notifications. This pattern significantly reduces client-subsystem coupling.
+- **Repository Pattern**: Used to abstract the data access layer, providing a collection-like interface for domain objects and decoupling the business logic from data persistence concerns.
 
-### Speaker/Performer Management
-- **Register Speaker:** Add a speaker/performer to an event with a description.
-- **List Speakers:** Show all speakers registered for an event.
-- **Edit Speaker:** Edit a speaker’s details while retaining original information if a field is left blank.
+### Behavioral Patterns
+- **Observer Pattern**: Implemented in the notification system to establish a publisher-subscriber relationship, allowing multiple objects to be notified when state changes occur, without tight coupling between components.
 
-### Vendor Management
-- **Register Vendor:** Add a vendor by providing its name and the services/products offered.
-- **List Vendors:** Display all vendors associated with an event.
-- **Edit Vendor:** Update vendor details while retaining original information if a field is left blank.
+## Requirements Implemented
 
-### Feedback & Surveys
-- **Submit Feedback:** Allow attendees to leave feedback for an event.
+- ✅ **Event Creation and Management**: Create, edit, and manage event details
+- ✅ **Attendee Registration**: Register and manage event participants
+- ✅ **Speaker and Performer Profiles**: Manage profiles and information for speakers
+- ✅ **Vendor Management**: Coordinate with vendors for services like catering and equipment
+- ✅ **Feedback and Survey Tools**: Collect attendee feedback post-event
+- ✅ **Budget and Financial Management**: Track and manage event budgets and expenses
 
-### Budget & Financial Management
-- **Update Budget:** Increase the event’s budget by adding a specified amount.
-- **View Budget:** Retrieve the current budget for an event.
-- **Edit Budget:** Overwrite the event’s budget with a new value, retaining the original if no new value is provided.
+## Technical Scope Limitations
 
-## Checklist of Implemented and Missing Features
+Some features were considered but excluded from implementation due to technical constraints:
 
-### Implemented Features
-- ✅ **Event Creation and Management:** Users can create, edit, list, and delete event details.
-- ✅ **Attendee Registration:** Participants can be registered and listed for events.
-- ✅ **Speaker & Performer Management:** Speakers/Performers can be registered, listed, and edited.
-- ✅ **Vendor Management:** Vendors can be registered, listed, and edited.
-- ✅ **Feedback & Surveys:** Attendees can submit feedback for events.
-- ✅ **Budget & Financial Management:** Users can update, view, and edit event budgets.
-- ✅ **Schedule and Agenda Management:** Event creation includes scheduling via dates.
+- Email delivery functionality (while notification infrastructure is in place using the Observer pattern)
+- External system integrations (venue booking, payment processing)
+- Authentication flows required for social media integration
+- Complex temporal data modeling for detailed schedules
 
-### Missing Features
-- ❌ **Venue Booking:** Not implemented because it would require using a real booking platform like Airbnb, which is not ideal for an academic project.
-- ❌ **Social Media Integration:** Not implemented due to lack of time.
-- ❌ **Email and Notification System:** Not implemented due to lack of time.
+These features would add significant complexity without contributing to the primary goal of demonstrating design patterns.
 
----
+## Prerequisites
 
-## Technologies Used
+- Python 3.8+ ([Download Python](https://www.python.org/downloads/))
+- PostgreSQL 12+ ([Download PostgreSQL](https://www.postgresql.org/download/))
 
-- **Back-end:** Flask, SQLAlchemy (for ORM and database management), Python.
-- **Front-end:** Flask Templates (Jinja2), HTML5, CSS (modular CSS files for each component).
-- **Terminal Client:** A Python client (`event_client.py`) for terminal-based interaction.
-- **Other Libraries:** Requests (for HTTP communication in the client).
+## Installation
 
----
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/tcheld0n/Event-Planning-Software.git
+cd Event-Planning-Software
+```
+
+### 2. Create a virtual environment (optional but recommended)
+
+```bash
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# Linux/Mac
+source venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+pip install flask psycopg2-binary sqlalchemy
+```
+
+or if a requirements.txt file exists:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Install and configure PostgreSQL
+
+1. Download and install PostgreSQL from: https://www.postgresql.org/download/
+2. During installation:
+   - Set password to `123456` for the postgres user
+   - Keep the default port `5432`
+   - Complete the installation
+
+## Running the System
+
+### First-time use or after PostgreSQL installation
+
+Follow these steps for first-time execution or after installing PostgreSQL:
+
+1. **Verify PostgreSQL installation**:
+   ```bash
+   python utils/check_postgres_simplified.py
+   ```
+   This script checks if PostgreSQL is installed and functioning correctly.
+
+2. **Start the system**:
+   ```bash
+   python main.py
+   ```
+   This command checks the database, creates necessary tables, and starts the web server. Access http://localhost:5000 in your browser.
+
+### Regular use
+
+For subsequent uses, simply run:
+
+```bash
+python main.py
+```
+
+### System Maintenance
+
+#### Troubleshooting PostgreSQL connection issues
+
+If you encounter connection problems with PostgreSQL:
+
+```bash
+python utils/fix_postgres.py
+```
+
+This script diagnoses and attempts to fix common PostgreSQL issues.
+
+#### Clearing system data
+
+To clear all data and start fresh (preserving the structure):
+
+```bash
+python utils/reset_tables.py
+```
 
 ## Project Structure
 
-```plaintext
-.
-├── README.md
-├── app.py
-├── client
-│   └── event_client.py
-├── controllers
-│   ├── budget_controller.py
-│   ├── event_controller.py
-│   ├── feedback_controller.py
-│   ├── participant_controller.py
-│   ├── speaker_controller.py
-│   └── vendor_controller.py
-├── database
-│   └── db.py
-├── models
-│   ├── event.py
-│   ├── participant.py
-│   ├── speaker.py
-│   └── vendor.py
-├── requirements.txt
-├── services
-│   ├── base_service.py
-│   ├── event_service.py
-│   ├── feedback_service.py
-│   ├── participant_service.py
-│   ├── speaker_service.py
-│   └── vendor_service.py
-├── templates
-│   ├── index.html
-│   ├── criar_evento.html
-│   ├── eventos.html
-│   ├── editar_evento.html
-│   ├── registrar_participante.html
-│   ├── participantes.html
-│   ├── editar_participante.html
-│   ├── registrar_palestrante.html
-│   ├── palestrantes.html
-│   ├── editar_palestrante.html
-│   ├── registrar_fornecedor.html
-│   ├── fornecedores.html
-│   ├── editar_fornecedor.html
-│   ├── atualizar_orcamento.html
-│   ├── ver_orcamento.html
-│   ├── editar_orcamento.html
-│   └── adicionar_feedback.html
-├── static
-│   └── css
-│       ├── styles.css
-│       ├── index.css
-│       ├── criarEvento.css
-│       ├── listarParticipantes.css
-│       ├── registrarParticipantes.css
-│       ├── registrarPalestrantes.css
-│       ├── listarPalestrantes.css
-│       ├── registrarFornecedores.css
-│       ├── listarFornecedores.css
-│       ├── atualizarOrcamento.css
-│       ├── verOrcamento.css
-│       ├── editarOrcamento.css
-│       └── adicionarFeedback.css
-└── views
+```
+EVENT-PLANNING-SOFTWARE/
+├── src/                      # Main source code
+│   ├── controllers/          # Request handlers
+│   ├── models/               # Domain models (entities)
+│   ├── repositories/         # Data access (Repository pattern)
+│   ├── services/             # Business services (Facade pattern)
+│   ├── factory/              # Object creation (Factory pattern)
+│   ├── database/             # Database configuration
+│   └── notifications/        # Notification system (Observer pattern)
+│
+├── utils/                    # Utilities and tools
+│   ├── create_table.py       # Database and table creation
+│   ├── reset_db.py           # Complete database reset
+│   ├── reset_tables.py       # Clear table data
+│   ├── check_postgres.py     # PostgreSQL installation verification
+│   └── fix_postgres.py       # PostgreSQL troubleshooting
+│
+├── static/                   # Static files (CSS, JS)
+├── templates/                # HTML templates
+├── app.py                    # Flask application
+├── main.py                   # Application entry point
+├── README.md                 # Documentation
+└── requirements.txt          # Project dependencies
+```
+
+## Features
+
+### Events
+- Create events with name, date, and budget
+- List registered events
+- Edit event details
+- Delete events
+
+### Participants
+- Register participants for specific events
+- List participants by event
+- Update participant information
+- Remove participants
+
+### Speakers
+- Register speakers with name and description
+- List speakers by event
+- Update speaker information
+- Remove speakers
+
+### Vendors
+- Register vendors with offered services
+- List vendors by event
+- Update vendor information
+- Remove vendors
+
+### Budget
+- View event budgets
+- Update budget
+- Edit budget value
+
+### Feedback
+- Add feedback for events
+- View received feedback
+
+## Conclusion
+
+This system demonstrates the implementation of various creational, structural, and behavioral design patterns in a Python application with Flask and PostgreSQL. The focus is on code organization, separation of concerns, and proper implementation of design patterns.
+
+The implemented architecture provides a solid foundation for future expansion of features, such as integration with payment systems for ticket sales or social media APIs for event promotion.
+
+## License
+
+[MIT](LICENSE)
