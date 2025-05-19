@@ -93,7 +93,7 @@ Follow these steps for first-time execution or after installing PostgreSQL:
 
 1. **Verify PostgreSQL installation**:
    ```bash
-   python utils/check_postgres_simplified.py
+   python utils/check_postgres.py
    ```
    This script checks if PostgreSQL is installed and functioning correctly.
 
